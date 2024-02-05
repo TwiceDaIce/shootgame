@@ -2,7 +2,11 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &1
 MonoBehaviour:
+<<<<<<< HEAD
   m_ObjectHideFlags: 53
+=======
+  m_ObjectHideFlags: 61
+>>>>>>> origin/main
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -13,4 +17,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   assetDefaultFramerate: 60
+<<<<<<< HEAD
   m_DefaultFrameRate: 60
+=======
+>>>>>>> origin/main
