@@ -14,13 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_LayerNames:
   - Default
-<<<<<<< HEAD
-=======
-  - Hats
-  - Pencils
-  - House
+  - Mag
+  - house
   - Raycasts
->>>>>>> origin/main
+  - 
+  - 
+  - Hats
   - 
   - 
   - 
@@ -46,12 +45,3 @@ MonoBehaviour:
   - 
   - 
   - 
-  - 
-  - 
-<<<<<<< HEAD
-  - 
-  - 
-  - 
-  - Teleport
-=======
->>>>>>> origin/main
