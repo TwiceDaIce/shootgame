@@ -1,14 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.ComTypes;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Management;
 
 public class XRReload : MonoBehaviour
 {
-    public void Awake()
+    public async void Awake()
     {
+        await Task.Delay(10);
         if (XRGeneralSettings.Instance.Manager.activeLoader != null)
         {
             XRGeneralSettings.Instance.Manager.StopSubsystems();
