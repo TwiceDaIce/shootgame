@@ -10,12 +10,15 @@ public class XRReload : MonoBehaviour
 {
     public async void Awake()
     {
-        await Task.Delay(10);
-        if (XRGeneralSettings.Instance.Manager.activeLoader != null)
+        await Task.Delay(1000);
+        try
         {
-            XRGeneralSettings.Instance.Manager.StopSubsystems();
-            XRGeneralSettings.Instance.Manager.DeinitializeLoader();
-        }
+            if (XRGeneralSettings.Instance.Manager.activeLoader != null)
+            {
+                XRGeneralSettings.Instance.Manager.StopSubsystems();
+                XRGeneralSettings.Instance.Manager.DeinitializeLoader();
+            }
+        } catch { }
         XRGeneralSettings.Instance.Manager.InitializeLoaderSync();
         XRGeneralSettings.Instance.Manager.StartSubsystems();
 
