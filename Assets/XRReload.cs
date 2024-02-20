@@ -10,7 +10,7 @@ public class XRReload : MonoBehaviour
 {
     public async void Awake()
     {
-        await Task.Delay(1000);
+        await Task.Delay(1001);
         try
         {
             if (XRGeneralSettings.Instance.Manager.activeLoader != null)

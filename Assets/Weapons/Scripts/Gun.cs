@@ -22,7 +22,7 @@ public class Gun : MonoBehaviour
     public AudioClip magazineInsertSound;
 
     [Header("Digital Weapon Data")]
-    public int ammoRemaining;
+    public int ammoRemainingInMagazine;
     public bool magazineInserted;
     public bool bulletInChamber;
     public float delayBetweenFiring;
@@ -51,7 +51,10 @@ public class Gun : MonoBehaviour
     }
     public ActionType actionType;
     public FireType fireType;
-
+    private void Start()
+    {
+        ammoRemainingInMagazine = magazineObject.GetComponent<Magazine>().roundsRemaining;
+    }
     public void Fire()
     {
         // spawn bullet raytrace
