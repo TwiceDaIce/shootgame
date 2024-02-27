@@ -33,6 +33,7 @@
 ExportedObj/
 .consulo/
 *.csproj
+.csproj
 Assembly-CSharp.csproj
 *.unityproj
 *.sln
@@ -71,3 +72,6 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# lock files
+packages-lock.json
