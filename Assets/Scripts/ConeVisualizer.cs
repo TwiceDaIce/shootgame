@@ -1,4 +1,5 @@
 using UnityEngine;
+
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class ConeVisualizer : MonoBehaviour
 {
@@ -29,22 +30,27 @@ public class ConeVisualizer : MonoBehaviour
     public void CreateConeMesh()
     {
         coneMesh = new Mesh();
+        coneMesh.name = "ViewCone";
         GetComponent<MeshFilter>().mesh = coneMesh;
         Vector3[] vertices = new Vector3[segments + 1];
         int[] triangles = new int[segments * 3];
+        Vector3[] normals = new Vector3[segments + 1]; // New array to store normals
 
         // Center vertex
         vertices[0] = Vector3.zero;
+        normals[0] = Vector3.zero; // Center normal is (0, 0, 0)
 
-        // Generate vertices
+        // Generate vertices and normals
         for (int i = 1; i <= segments; i++)
         {
             float angle = (float)i / segments * fieldOfViewAngle * Mathf.Deg2Rad;
-            vertices[i] = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * viewDistance;
+            Vector3 vertexPosition = Quaternion.Euler(0, 0, angle * Mathf.Rad2Deg) * Vector3.up * viewDistance;
+            vertices[i] = vertexPosition;
+            normals[i] = vertexPosition.normalized; // Normalized vertex position
         }
 
         // Generate triangles
-        for (int i = 0; i < segments; i++)
+        for (int i = 0; i < segments - 1; i++)
         {
             triangles[i * 3] = 0;
             triangles[i * 3 + 1] = i + 1;
@@ -53,36 +59,55 @@ public class ConeVisualizer : MonoBehaviour
 
         coneMesh.vertices = vertices;
         coneMesh.triangles = triangles;
-        coneMesh.RecalculateNormals();
+        coneMesh.normals = normals; // Set the normals
         coneMesh.RecalculateBounds();
     }
 
     private void Update()
     {
-        // Check for collisions with objects tagged as 'Visblock'
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position, transform.forward, out hit, viewDistance))
-        {
-            if (hit.collider.CompareTag("Visblock"))
-            {
-                // Calculate the clipping point
-                float distanceToHit = hit.distance;
-                float angleToHit = Mathf.Atan2(hit.point.y, hit.point.x) * Mathf.Rad2Deg;
-                float clippedAngle = Mathf.Clamp(angleToHit, -fieldOfViewAngle / 2f, fieldOfViewAngle / 2f);
-                float clippedDistance = distanceToHit / Mathf.Cos(clippedAngle * Mathf.Deg2Rad);
+        // Always recalculate cone mesh vertices
+        //CreateConeMesh();
 
-                // Adjust the vertices of the cone mesh to clip at the point of occlusion
-                Vector3[] vertices = coneMesh.vertices;
-                vertices[segments] = new Vector3(Mathf.Cos(clippedAngle * Mathf.Deg2Rad) * clippedDistance, Mathf.Sin(clippedAngle * Mathf.Deg2Rad) * clippedDistance, 0f);
-                coneMesh.vertices = vertices;
-                coneMesh.RecalculateNormals();
-                coneMesh.RecalculateBounds();
-            }
-        }
-        else
+        // Check for collisions with objects tagged as 'Visblock'
+        RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward, viewDistance);
+
+        if (true)
         {
-            // Reset the vertices if not occluded
-            CreateConeMesh();
+            // Find the closest hit point
+            if (hits.Length > 0)
+            {
+                RaycastHit closestHit = hits[0];
+                foreach (RaycastHit hit in hits)
+                {
+                    if (!hit.collider.CompareTag("Transparent") && hit.distance < closestHit.distance)
+                    {
+                        closestHit = hit;
+                    }
+                }
+            }
+
+            // Calculate intersection points
+            Vector3[] vertices = coneMesh.vertices;
+            for (int i = 1; i <= segments; i++)
+            {
+                float angle = (float)i / segments * fieldOfViewAngle * Mathf.Deg2Rad;
+                Vector3 direction = Quaternion.Euler(0, angle * Mathf.Rad2Deg, 0) * transform.forward;
+                Ray ray = new Ray(transform.position, direction);
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit, viewDistance))
+                {
+                    vertices[i] = transform.InverseTransformPoint(hit.point);
+                }
+                else
+                {
+                    vertices[i] = transform.InverseTransformPoint(transform.position + direction * viewDistance);
+                }
+            }
+
+            // Update cone mesh vertices
+            coneMesh.vertices = vertices;
+            coneMesh.RecalculateNormals();
+            coneMesh.RecalculateBounds();
         }
     }
 }

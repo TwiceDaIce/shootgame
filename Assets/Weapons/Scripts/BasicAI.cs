@@ -10,6 +10,7 @@ public class BasicAI : MonoBehaviour
     public float fieldOfViewAngle = 45f;
     public float viewDistance = 10f;
     public float movementSmoothness = 5f;
+    //public bool enableMovement = true;
 
     private float currentSpeed;
     private Vector3 direction;
@@ -35,6 +36,7 @@ public class BasicAI : MonoBehaviour
             // Rotate towards the player
             RotateTowardsPlayer();
         }
+        Debug.Log("Is Player Visible: " + CanSeePlayer());
     }
 
     private void ChangeDirection()
