@@ -10,19 +10,35 @@ public class BasicAI : MonoBehaviour
     public float fieldOfViewAngle = 45f;
     public float viewDistance = 10f;
     public float movementSmoothness = 5f;
-    //public bool enableMovement = true;
+    public float followDelay = 2f; // Delay before the enemy stops following the player
+    private float followTimer = 0f; // Timer to track follow delay
 
     private float currentSpeed;
-    private Vector3 direction;
     private Rigidbody rb;
     private Transform player;
     private Vector3 targetVelocity;
+    private bool isFollowingPlayer = false; // Flag to track if AI is following the player
+    private bool isPlayerVisible;
+    public bool followingPlayer;
+    public float followTime;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
         Invoke("ChangeDirection", Random.Range(minChangeDirectionTime, maxChangeDirectionTime));
         player = GameObject.FindGameObjectWithTag("Player").transform;
+        followingPlayer = isFollowingPlayer;
+        followTime = followTimer;
+        CollisionHandler.OnCollisionOccured += CanSeePlayer;
+    }
+
+    private void CanSeePlayer(GameObject other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            isPlayerVisible = true;
+            Debug.LogWarning("Player Seen!");
+        } else { isPlayerVisible = false; }
     }
 
     private void Update()
@@ -31,18 +47,42 @@ public class BasicAI : MonoBehaviour
         rb.velocity = Vector3.Lerp(rb.velocity, targetVelocity, Time.deltaTime * movementSmoothness);
 
         // Check if player is within sightline
-        if (CanSeePlayer())
+        if (isPlayerVisible)
         {
-            // Rotate towards the player
-            RotateTowardsPlayer();
+            // Track the player's position
+            TrackPlayer();
+            isFollowingPlayer = true;
+            followTimer = followDelay; // Reset follow delay timer
         }
-        Debug.Log("Is Player Visible: " + CanSeePlayer());
+        else if (isFollowingPlayer)
+        {
+            // If not visible but still following, decrement follow delay timer
+            followTimer -= Time.deltaTime;
+            if (followTimer <= 0f)
+            {
+                // Stop following after the delay
+                isFollowingPlayer = false;
+            }
+        }
+        else
+        {
+            // Rotate naturally if not following player
+            //RotateNaturally();
+        }
+
+        if (isFollowingPlayer)
+        {
+            // Move towards the player
+            MoveTowardsPlayer();
+        }
+
+        Debug.Log("Is Player Visible: " + isPlayerVisible);
     }
 
     private void ChangeDirection()
     {
         // Generate a new random direction
-        direction = Random.insideUnitSphere;
+        Vector3 direction = Random.insideUnitSphere;
 
         // Set the y-component to 0 to restrict movement on the y-axis
         direction.y = 0f;
@@ -60,7 +100,7 @@ public class BasicAI : MonoBehaviour
         Invoke("ChangeDirection", Random.Range(minChangeDirectionTime, maxChangeDirectionTime));
     }
 
-    private bool CanSeePlayer()
+    /*private bool CanSeePlayer()
     {
         // Calculate direction to the player
         Vector3 directionToPlayer = player.position - transform.position;
@@ -69,7 +109,10 @@ public class BasicAI : MonoBehaviour
         float angle = Vector3.Angle(transform.forward, directionToPlayer);
 
         // Check if player is within field of view angle and within view distance
-        if (angle < fieldOfViewAngle / 2f)
+
+        coneMeshCollider.
+
+        if (angle < fieldOfViewAngle / 1f)
         {
             RaycastHit hit;
             if (Physics.Raycast(transform.position, directionToPlayer.normalized, out hit, viewDistance))
@@ -81,9 +124,9 @@ public class BasicAI : MonoBehaviour
             }
         }
         return false;
-    }
+    }*/
 
-    private void RotateTowardsPlayer()
+    private void TrackPlayer()
     {
         // Calculate direction to the player
         Vector3 directionToPlayer = player.position - transform.position;
@@ -94,7 +137,27 @@ public class BasicAI : MonoBehaviour
         // Calculate rotation towards player
         Quaternion targetRotation = Quaternion.LookRotation(directionToPlayer);
 
-        // Smoothly rotate towards player
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+        // Set the rotation to directly face the player
+        //transform.rotation = targetRotation;
+        RotateNaturally(directionToPlayer);
+    }
+    private void RotateNaturally()
+    {
+        // Rotate naturally (e.g., random direction)
+        transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
+    }
+    private void RotateNaturally(Vector3 direction)
+    {
+        // Rotate naturally (e.g., random direction)
+        transform.Rotate(direction, rotationSpeed * Time.deltaTime);
+    }
+
+    private void MoveTowardsPlayer()
+    {
+        // Calculate direction to the player
+        Vector3 directionToPlayer = player.position - transform.position;
+
+        // Set the target velocity to move towards the player
+        targetVelocity = directionToPlayer.normalized * currentSpeed;
     }
 }

@@ -3,6 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class ConeVisualizer : MonoBehaviour
 {
+
     public float fieldOfViewAngle = 45f;
     public float viewDistance = 10f;
     public int segments = 50;
@@ -24,7 +25,8 @@ public class ConeVisualizer : MonoBehaviour
         meshRenderer.material = new Material(Shader.Find("Standard"));
 
         // Toggle visibility
-        meshRenderer.enabled = false; // Set to true to visualize the cone
+        meshRenderer.enabled = true; // Set to true to visualize the cone
+        GetComponent<MeshCollider>().sharedMesh = coneMesh;
     }
 
     public void CreateConeMesh()
@@ -32,36 +34,69 @@ public class ConeVisualizer : MonoBehaviour
         coneMesh = new Mesh();
         coneMesh.name = "ViewCone";
         GetComponent<MeshFilter>().mesh = coneMesh;
-        Vector3[] vertices = new Vector3[segments + 1];
-        int[] triangles = new int[segments * 3];
-        Vector3[] normals = new Vector3[segments + 1]; // New array to store normals
 
-        // Center vertex
-        vertices[0] = Vector3.zero;
-        normals[0] = Vector3.zero; // Center normal is (0, 0, 0)
+        int numVertices = segments * 3 + 1; // Vertices for top, bottom, and edge points
+        int numTriangles = segments * 3; // Triangles for side faces
 
-        // Generate vertices and normals
-        for (int i = 1; i <= segments; i++)
+        Vector3[] vertices = new Vector3[numVertices];
+        int[] triangles = new int[numTriangles * 3]; // Each triangle has 3 vertices
+        Vector3[] normals = new Vector3[numVertices];
+
+        // Generate vertices for the top circle
+        for (int i = 0; i < segments; i++)
         {
-            float angle = (float)i / segments * fieldOfViewAngle * Mathf.Deg2Rad;
-            Vector3 vertexPosition = Quaternion.Euler(0, 0, angle * Mathf.Rad2Deg) * Vector3.up * viewDistance;
-            vertices[i] = vertexPosition;
-            normals[i] = vertexPosition.normalized; // Normalized vertex position
+            float angle = 2 * Mathf.PI * i / segments;
+            float x = Mathf.Cos(angle);
+            float z = Mathf.Sin(angle);
+            vertices[i] = new Vector3(x, 1, z); // Top circle
         }
 
-        // Generate triangles
-        for (int i = 0; i < segments - 1; i++)
+        // Generate vertices for the bottom circle and apex
+        vertices[segments] = Vector3.zero; // Apex (center)
+        for (int i = 0; i < segments; i++)
         {
-            triangles[i * 3] = 0;
-            triangles[i * 3 + 1] = i + 1;
-            triangles[i * 3 + 2] = i + 2;
+            float angle = 2 * Mathf.PI * i / segments;
+            float x = Mathf.Cos(angle);
+            float z = Mathf.Sin(angle);
+            vertices[i + segments + 1] = new Vector3(x, 0, z); // Bottom circle
+        }
+
+        // Set normals for top circle vertices (pointing upwards)
+        for (int i = 0; i < segments; i++)
+        {
+            normals[i] = Vector3.up;
+        }
+
+        // Set normals for bottom circle and apex vertices (pointing downwards)
+        for (int i = segments; i < numVertices; i++)
+        {
+            normals[i] = Vector3.down;
+        }
+
+        // Generate triangles for side faces
+        for (int i = 0; i < segments; i++)
+        {
+            int baseIndex = i * 3;
+            int nextIndex = (i + 1) % segments;
+
+            // Side face triangles
+            triangles[baseIndex] = i;
+            triangles[baseIndex + 1] = (i + 1) % segments;
+            triangles[baseIndex + 2] = segments; // Apex
+
+            triangles[baseIndex + segments * 3] = i + segments + 1;
+            triangles[baseIndex + segments * 3 + 1] = nextIndex + segments + 1;
+            triangles[baseIndex + segments * 3 + 2] = segments; // Apex
         }
 
         coneMesh.vertices = vertices;
         coneMesh.triangles = triangles;
-        coneMesh.normals = normals; // Set the normals
+        coneMesh.normals = normals;
         coneMesh.RecalculateBounds();
     }
+
+
+
 
     private void Update()
     {
